@@ -21,6 +21,7 @@
     "ava": "^3.15.0"
   },
   "dependencies": {
-    "abstract-confine-runtime": "^0.0.1"
+    "abstract-confine-runtime": "^0.0.1",
+    "eval": "^0.1.6"
   }
 }

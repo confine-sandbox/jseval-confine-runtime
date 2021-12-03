@@ -1,4 +1,5 @@
 const fs = require('fs').promises
+const _eval = require('eval')
 const AbstractConfineRuntime = require('abstract-confine-runtime')
 
 module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
@@ -13,8 +14,7 @@ module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
   }
 
   async run () {
-    ;(1, eval)(this.scriptSource)
-    // the above oddity is known as an "indirect" eval. It causes the eval() to run in the global scope.
+    _eval(this.scriptSource, undefined, undefined, true)
   }
 
   async close () {
