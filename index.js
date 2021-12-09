@@ -12,9 +12,9 @@ module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
   async init () {
     this.sandbox = {
       console: {
-        log: (...args) => this.ipc.notify(0, pack({method: '__console_log', body: {stderr: false, data: args.join(' ')}})),
-        error: (...args) => this.ipc.notify(0, pack({method: '__console_log', body: {stderr: true, data: args.join(' ')}})),
-        warn: (...args) => this.ipc.notify(0, pack({method: '__console_log', body: {stderr: true, data: args.join(' ')}}))
+        log: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: false, data: args.join(' ')}})),
+        error: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: true, data: args.join(' ')}})),
+        warn: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: true, data: args.join(' ')}}))
       },
       request: (body) => this.ipc.request(0, pack(body)),
       notify: (body) => this.ipc.notify(0, pack(body))

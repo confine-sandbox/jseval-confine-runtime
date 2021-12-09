@@ -13,9 +13,9 @@ ava('Basic', async t => {
   await runtime.run()
   t.is(ipc.messages.length, 2)
   t.is(ipc.messages[0].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[0].body).body, {stderr: false, data: 'hello, world'})
+  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'hello, world'})
   t.is(ipc.messages[1].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[1].body).body, {stderr: true, data: 'hello, error'})
+  t.deepEqual(unpack(ipc.messages[1].body).params, {stderr: true, data: 'hello, error'})
 })
 
 ava('Classes', async t => {
@@ -26,7 +26,7 @@ ava('Classes', async t => {
   await runtime.run()
   t.is(ipc.messages.length, 1)
   t.is(ipc.messages[0].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[0].body).body, {stderr: false, data: 'Hello from MyClass'})
+  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'Hello from MyClass'})
 })
 
 ava('Require', async t => {
@@ -37,7 +37,7 @@ ava('Require', async t => {
   await runtime.run()
   t.is(ipc.messages.length, 1)
   t.is(ipc.messages[0].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[0].body).body, {stderr: false, data: 'string'})
+  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'string'})
 })
 
 ava('Messaging', async t => {
