@@ -1,4 +1,3 @@
-const fs = require('fs').promises
 const _eval = require('eval')
 const AbstractConfineRuntime = require('abstract-confine-runtime')
 const {pack, unpack} = require('msgpackr')
@@ -16,6 +15,11 @@ module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
         error: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: true, data: args.join(' ')}})),
         warn: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: true, data: args.join(' ')}}))
       },
+      process: Object.assign({}, process, {
+        exit: (code) => {
+          this.emit('closed', code || 0)
+        }
+      }),
       request: (body) => this.ipc.request(0, pack(body)),
       notify: (body) => this.ipc.notify(0, pack(body))
     }

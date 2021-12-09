@@ -56,3 +56,17 @@ ava('Messaging', async t => {
   t.is(ipc.messages[0].type, 'request')
   t.deepEqual(unpack(ipc.messages[0].body).method, 'pongMe')
 })
+
+ava('Self close', async t => {
+  const ipc = fakeIpc()
+  const source = await fs.readFile(join(__dirname, 'programs', 'selfclose.js'))
+  const runtime = new JsEvalConfineRuntime({source, ipc})
+  let exitCode = undefined
+  runtime.on('closed', _exitCode => { exitCode = _exitCode })
+  await runtime.init()
+  await runtime.run()
+  t.is(ipc.messages.length, 1)
+  t.is(ipc.messages[0].type, 'notify')
+  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'self closing'})
+  t.is(exitCode, 1)
+})

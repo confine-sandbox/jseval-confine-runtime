@@ -21,7 +21,7 @@
     "ava": "^3.15.0"
   },
   "dependencies": {
-    "abstract-confine-runtime": "^0.1.0",
+    "abstract-confine-runtime": "^0.2.0",
     "eval": "^0.1.6",
     "msgpackr": "^1.5.1"
   }
