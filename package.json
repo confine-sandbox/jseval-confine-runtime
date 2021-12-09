@@ -1,6 +1,6 @@
 {
   "name": "jseval-confine-runtime",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Confine runtime: Runs javascript with no additional sandboxing. ",
   "main": "index.js",
   "scripts": {
