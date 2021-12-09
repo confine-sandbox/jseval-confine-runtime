@@ -7,7 +7,7 @@ const {pack, unpack} = require('msgpackr')
 
 ava('Basic', async t => {
   const ipc = fakeIpc()
-  const source = await fs.readFile(join(__dirname, 'programs', 'basic.js'), 'utf-8')
+  const source = await fs.readFile(join(__dirname, 'programs', 'basic.js'))
   const runtime = new JsEvalConfineRuntime({source, ipc})
   await runtime.init()
   await runtime.run()
@@ -20,7 +20,7 @@ ava('Basic', async t => {
 
 ava('Classes', async t => {
   const ipc = fakeIpc()
-  const source = await fs.readFile(join(__dirname, 'programs', 'classes.js'), 'utf-8')
+  const source = await fs.readFile(join(__dirname, 'programs', 'classes.js'))
   const runtime = new JsEvalConfineRuntime({source, ipc})
   await runtime.init()
   await runtime.run()
@@ -31,7 +31,7 @@ ava('Classes', async t => {
 
 ava('Require', async t => {
   const ipc = fakeIpc()
-  const source = await fs.readFile(join(__dirname, 'programs', 'require.js'), 'utf-8')
+  const source = await fs.readFile(join(__dirname, 'programs', 'require.js'))
   const runtime = new JsEvalConfineRuntime({source, ipc})
   await runtime.init()
   await runtime.run()
@@ -42,7 +42,7 @@ ava('Require', async t => {
 
 ava('Messaging', async t => {
   const ipc = fakeIpc()
-  const source = await fs.readFile(join(__dirname, 'programs', 'messaging.js'), 'utf-8')
+  const source = await fs.readFile(join(__dirname, 'programs', 'messaging.js'))
   const runtime = new JsEvalConfineRuntime({source, ipc})
   await runtime.init()
   await runtime.run()

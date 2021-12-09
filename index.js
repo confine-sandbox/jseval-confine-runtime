@@ -22,7 +22,7 @@ module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
   }
 
   async run () {
-    this.vmExports = _eval(this.source, undefined, this.sandbox, true)
+    this.vmExports = _eval(this.source.toString('utf-8'), undefined, this.sandbox, true)
   }
 
   async close () {
