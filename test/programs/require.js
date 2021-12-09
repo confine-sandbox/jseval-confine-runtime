@@ -1,2 +1,2 @@
 const os = require('os')
-console.log(os.hostname())
+console.log(typeof os.hostname())
