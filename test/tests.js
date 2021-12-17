@@ -2,71 +2,69 @@ const ava = require('ava')
 const {join} = require('path')
 const fs = require('fs').promises
 const JsEvalConfineRuntime = require('../index.js')
-const {fakeIpc} = require('./util/util.js')
-const {pack, unpack} = require('msgpackr')
+
+function makeGlobals () {
+  const logs = []
+  const errors = []
+  const globals = {
+    console: {
+      log: (...args) => logs.push(args),
+      error: (...args) => errors.push(args)
+    }
+  }
+  return {
+    globals,
+    logs,
+    errors
+  }
+}
 
 ava('Basic', async t => {
-  const ipc = fakeIpc()
+  const {globals, logs, errors} = makeGlobals()
   const source = await fs.readFile(join(__dirname, 'programs', 'basic.js'))
-  const runtime = new JsEvalConfineRuntime({source, ipc})
+  const runtime = new JsEvalConfineRuntime({source, globals})
   await runtime.init()
   await runtime.run()
-  t.is(ipc.messages.length, 2)
-  t.is(ipc.messages[0].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'hello, world'})
-  t.is(ipc.messages[1].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[1].body).params, {stderr: true, data: 'hello, error'})
+  t.deepEqual(logs, [['hello, world']])
+  t.deepEqual(errors, [['hello, error']])
 })
 
 ava('Classes', async t => {
-  const ipc = fakeIpc()
+  const {globals, logs, errors} = makeGlobals()
   const source = await fs.readFile(join(__dirname, 'programs', 'classes.js'))
-  const runtime = new JsEvalConfineRuntime({source, ipc})
+  const runtime = new JsEvalConfineRuntime({source, globals})
   await runtime.init()
   await runtime.run()
-  t.is(ipc.messages.length, 1)
-  t.is(ipc.messages[0].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'Hello from MyClass'})
+  t.deepEqual(logs, [['Hello from MyClass']])
 })
 
 ava('Require', async t => {
-  const ipc = fakeIpc()
+  const {globals, logs, errors} = makeGlobals()
   const source = await fs.readFile(join(__dirname, 'programs', 'require.js'))
-  const runtime = new JsEvalConfineRuntime({source, ipc})
+  const runtime = new JsEvalConfineRuntime({source, globals})
   await runtime.init()
   await runtime.run()
-  t.is(ipc.messages.length, 1)
-  t.is(ipc.messages[0].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'string'})
+  t.deepEqual(logs, [['string']])
 })
 
-ava('Messaging', async t => {
-  const ipc = fakeIpc()
-  const source = await fs.readFile(join(__dirname, 'programs', 'messaging.js'))
-  const runtime = new JsEvalConfineRuntime({source, ipc})
+ava('Exports', async t => {
+  const {globals, logs, errors} = makeGlobals()
+  const source = await fs.readFile(join(__dirname, 'programs', 'exports.js'))
+  const runtime = new JsEvalConfineRuntime({source, globals})
   await runtime.init()
   await runtime.run()
-  const res1 = unpack(await runtime.handleRequest(pack({method: 'succeed'})))
-  const res2 = unpack(await runtime.handleRequest(pack({method: 'pingMe'})))
-  const res3 = unpack(await runtime.handleRequest(pack({method: 'badmethod'})).catch(e => e))
-  t.truthy(res1.isGood)
-  t.truthy(res2.isGood)
-  t.is(res3.message, 'Undefined method')
-  t.is(ipc.messages.length, 1)
-  t.is(ipc.messages[0].type, 'request')
-  t.deepEqual(unpack(ipc.messages[0].body).method, 'pongMe')
+  const res1 = await runtime.handleAPICall('ping', [5])
+  t.is(res1.pong, 5)
 })
 
 ava('Self close', async t => {
-  const ipc = fakeIpc()
+  const {globals, logs, errors} = makeGlobals()
   const source = await fs.readFile(join(__dirname, 'programs', 'selfclose.js'))
-  const runtime = new JsEvalConfineRuntime({source, ipc})
+  const runtime = new JsEvalConfineRuntime({source, globals})
   let exitCode = undefined
   runtime.on('closed', _exitCode => { exitCode = _exitCode })
   await runtime.init()
   await runtime.run()
-  t.is(ipc.messages.length, 1)
-  t.is(ipc.messages[0].type, 'notify')
-  t.deepEqual(unpack(ipc.messages[0].body).params, {stderr: false, data: 'self closing'})
+  t.deepEqual(logs, [['self closing']])
   t.is(exitCode, 1)
 })

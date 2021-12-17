@@ -1,6 +1,6 @@
 const _eval = require('eval')
-const AbstractConfineRuntime = require('abstract-confine-runtime')
-const {pack, unpack} = require('msgpackr')
+const { AbstractConfineRuntime, APIDescription, APIObject, APIMethod, MethodNotFound } = require('abstract-confine-runtime')
+const _get = require('lodash.get')
 
 module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
   constructor (opts) {
@@ -10,18 +10,12 @@ module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
 
   async init () {
     this.sandbox = {
-      console: {
-        log: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: false, data: args.join(' ')}})),
-        error: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: true, data: args.join(' ')}})),
-        warn: (...args) => this.ipc.notify(0, pack({method: '__console_log', params: {stderr: true, data: args.join(' ')}}))
-      },
       process: Object.assign({}, process, {
         exit: (code) => {
           this.emit('closed', code || 0)
         }
       }),
-      request: (body) => this.ipc.request(0, pack(body)),
-      notify: (body) => this.ipc.notify(0, pack(body))
+      ...this.opts.globals
     }
   }
 
@@ -32,15 +26,28 @@ module.exports = class JsEvalConfineRuntime extends AbstractConfineRuntime {
   async close () {
   }
 
-  async handleRequest (body) {
-    if (typeof this.vmExports.onrequest === 'function') {
-      try {
-        return pack(await this.vmExports?.onrequest(unpack(body)))
-      } catch (e) {
-        throw pack({message: e.message || e.toString()})
-      }
+  describeAPI () {
+    return new APIDescription(toAPIDescription(this.vmExports || {}))
+  }
+
+  async handleAPICall (methodName, params) {
+    const method = _get(this.vmExports, methodName)
+    if (typeof method === 'function') {
+      return await method(...(params || []))
     } else {
-      throw pack({message: 'No request handler defined'})
+      throw new MethodNotFound(`Method not found: ${methodName}`)
     }
   }
+}
+
+function toAPIDescription (obj) {
+  const items = []
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'function') {
+      items.push(new APIMethod(key))
+    } else if (value && typeof value === 'object') {
+      items.push(new APIObject(key, toAPIDescription(value)))
+    }
+  }
+  return items
 }
